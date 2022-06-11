@@ -27,5 +27,15 @@ const postNew = async (req, res) => {
     }
   }
 };
-const another = () => {};
-export { postNew, another };
+const getMe = async (req, res) => {
+  const token = req.headers["X-Token"];
+  const userId = await redisClient.get(token),
+    User = dbClient.collection("users");
+  const userFound = await User.findOne({ _id: userId });
+  if (!userFound) {
+    res.status(401).send({ error: "Unauthorized" });
+  } else {
+    res.send({ email: userFound.email, id: _id });
+  }
+};
+export { postNew, getMe };
