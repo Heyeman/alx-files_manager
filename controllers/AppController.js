@@ -13,4 +13,5 @@ const getStats = async (req, res) => {
   const nF = await dbClient.nbFiles();
   res.status(200).json({ users: nU, files: nF });
 };
-export { getStatus, getStats };
+
+export { getStats, getStatus };
