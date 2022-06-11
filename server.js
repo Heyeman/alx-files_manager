@@ -1,10 +1,11 @@
-import express from 'express';
+import express from "express";
 
 const app = express();
 const port = process.env.PORT || 5000;
-
-app.use('/', require('./routes'));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+app.use("/", require("./routes"));
 
 app.listen(port, () => {
-  console.log('listening');
+  console.log("listening");
 });
