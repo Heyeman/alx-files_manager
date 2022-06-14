@@ -26,9 +26,7 @@ const getConnect = async (req, res) => {
   } else {
     const id = uuidv4();
     const strId = userExists._id.toString();
-
-    await redisClient.set(`auth_${id}`, strId, 21);
-
+    let setKey = await redisClient.set(`auth_${id}`, strId, 24 * 3600);
     res.status(200).send({ token: id });
   }
 };
