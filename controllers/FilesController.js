@@ -25,15 +25,24 @@ const postUpload = async (req, res) => {
   if (!data && type !== "folder") {
     res.status(400).send({ error: "Missing data" });
   }
-  const parentId = req.body.parentId ? req.body.parentId : 0;
+  let parentId;
+  if (req.body.parentId) {
+    parentId = req.body.parentId;
+  } else {
+    parentId = 0;
+  }
+
   const isPublic = req.body.isPublic ? req.body.isPublic : false;
   const files = dbClient.db.collection("files");
+
   if (parentId !== 0) {
-    const parentFile = await files.findOne({ parentId });
+    const parentFile = await files.findOne({ _id: ObjectId(parentId) });
     if (!parentFile) {
       res.status(400).send({ error: "Parent not found" });
+      return;
     } else if (parentFile.type !== "folder") {
       res.status(400).send({ error: "Parent is not a folder" });
+      return;
     }
   }
   if (type === "folder") {
@@ -51,11 +60,12 @@ const postUpload = async (req, res) => {
       mkdirSync(storagePath, { recursive: true });
     }
     const fileId = uuidv4();
+    console.log("======file==", fileId, Buffer.from(data, "base64").toString());
     const newFile = await writeFile(
       storagePath + fileId,
       Buffer.from(data, "base64").toString()
     );
-    console.log("new file is", newFile);
+
     const addDoc = await files.insertOne({
       name,
       type,
@@ -64,7 +74,15 @@ const postUpload = async (req, res) => {
       userId: userExists._id,
       localPath: storagePath + fileId,
     });
-    res.status(201).json(addDoc.ops[0]);
+    res.status(201).send({
+      id: addDoc._id,
+      userId: addDoc.userId,
+      name,
+      type,
+      isPublic,
+      parentId,
+      localPath: addDoc.localPath,
+    });
   }
 };
 
