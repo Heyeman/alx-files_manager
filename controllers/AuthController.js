@@ -32,10 +32,8 @@ const getConnect = async (req, res) => {
 };
 const getDisconnect = async (req, res) => {
   const token = req.headers["X-Token"];
-  const userId = await redisClient.get(token);
-  const User = dbClient.collection("users");
-  const userFound = await User.findOne({ _id: userId });
-  if (!userFound) {
+  const userId = await redisClient.get(`auth_${token}`);
+  if (!userId) {
     res.status(401).send({ error: "Unauthorized" });
   } else {
     await redisClient.del(token);
