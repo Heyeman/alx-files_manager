@@ -74,15 +74,7 @@ const postUpload = async (req, res) => {
       userId: userExists._id,
       localPath: storagePath + fileId,
     });
-    res.status(201).send({
-      id: addDoc._id,
-      userId: addDoc.userId,
-      name,
-      type,
-      isPublic,
-      parentId,
-      localPath: addDoc.localPath,
-    });
+    res.status(201).json(addDoc.ops[0]);
   }
 };
 
