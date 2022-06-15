@@ -13,17 +13,11 @@ class DBClient {
     MongoClient(`mongodb://${this.host}:${this.port}`, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-<<<<<<< HEAD
     }).connect().then((client) => {
       this.client = client;
       this.db = this.client.db(this.dbName);
     }).catch((err) => {
       console.error(err.message);
-=======
-    });
-    this.client.connect(() => {
-      this.db = this.client.db(database);
->>>>>>> fe17f2462239af5958ed78064f601c5a47559503
     });
   }
 
