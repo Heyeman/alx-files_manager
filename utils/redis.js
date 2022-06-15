@@ -1,14 +1,18 @@
-import { createClient } from "redis";
-import { promisify } from "util";
+/**
+ * Contains redis client class and some helper functions
+ */
+import {
+  createClient,
+} from 'redis';
+import {
+  promisify,
+} from 'util';
 
 class RedisClient {
   constructor() {
     this.client = createClient();
-    this.client.on("error", (err) => {
+    this.client.on('error', (err) => {
       console.log(err.message);
-    });
-    this.client.on("connect", () => {
-      console.log("redis connected");
     });
   }
 
@@ -23,7 +27,7 @@ class RedisClient {
 
   async set(key, value, duration) {
     const setAsync = promisify(this.client.set).bind(this.client);
-    return setAsync(key, value, "EX", duration);
+    return setAsync(key, value, 'EX', duration);
   }
 
   async del(key) {
@@ -33,5 +37,4 @@ class RedisClient {
 }
 
 const redisClient = new RedisClient();
-
 export default redisClient;
