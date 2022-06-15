@@ -10,7 +10,6 @@ class DBClient {
     });
     this.client.connect(() => {
       this.db = this.client.db(database);
-      console.log("Database connected successfully");
     });
   }
 
