@@ -54,7 +54,16 @@ const postUpload = async (req, res) => {
       parentId,
       userId: userExists._id,
     });
-    res.status(201).json(addDoc.ops[0]);
+    const fileInfo = addDoc.ops[0];
+    // console.log(fileInfo)
+    res.status(201).send({
+      id: fileInfo._id,
+      userId: fileInfo.userId,
+      name: fileInfo.name,
+      type: fileInfo.type,
+      isPublic: fileInfo.isPublic,
+      parentId: fileInfo.parentId,
+    });
   } else {
     const storagePath = process.env.FOLDER_PATH || '/tmp/files_manager/';
     if (!existsSync(storagePath)) {
