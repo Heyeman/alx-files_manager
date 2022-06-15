@@ -1,29 +1,30 @@
-import { ObjectId } from "mongodb";
-import { existsSync, mkdirSync } from "fs";
-import { v4 as uuidv4 } from "uuid";
-import dbClient from "../utils/db";
-import redisClient from "../utils/redis";
-import { writeFile } from "fs/promises";
+import { ObjectId } from 'mongodb';
+import { existsSync, mkdirSync } from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+import { writeFile } from 'fs/promises';
+import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
+
 const postUpload = async (req, res) => {
-  const token = req.headers["x-token"];
+  const token = req.headers['x-token'];
   if (!token) {
-    res.status(401).send({ error: "Unauthorized" });
+    res.status(401).send({ error: 'Unauthorized' });
   }
   const keyId = await redisClient.get(`auth_${token}`);
-  const User = dbClient.db.collection("users");
+  const User = dbClient.db.collection('users');
   const userExists = await User.findOne({ _id: ObjectId(keyId) });
   if (!userExists) {
-    res.status(401).send({ error: "Unauthorized" });
+    res.status(401).send({ error: 'Unauthorized' });
   }
   const { name, type, data } = req.body;
   if (!name) {
-    res.status(400).send({ error: "Missing name" });
+    res.status(400).send({ error: 'Missing name' });
   }
-  if (!type || !["folder", "file", "image"].includes(type)) {
-    res.status(400).send({ error: "Missing type" });
+  if (!type || !['folder', 'file', 'image'].includes(type)) {
+    res.status(400).send({ error: 'Missing type' });
   }
-  if (!data && type !== "folder") {
-    res.status(400).send({ error: "Missing data" });
+  if (!data && type !== 'folder') {
+    res.status(400).send({ error: 'Missing data' });
   }
   let parentId;
   if (req.body.parentId) {
@@ -33,19 +34,19 @@ const postUpload = async (req, res) => {
   }
 
   const isPublic = req.body.isPublic ? req.body.isPublic : false;
-  const files = dbClient.db.collection("files");
+  const files = dbClient.db.collection('files');
 
   if (parentId !== 0) {
     const parentFile = await files.findOne({ _id: ObjectId(parentId) });
     if (!parentFile) {
-      res.status(400).send({ error: "Parent not found" });
+      res.status(400).send({ error: 'Parent not found' });
       return;
-    } else if (parentFile.type !== "folder") {
-      res.status(400).send({ error: "Parent is not a folder" });
+    } if (parentFile.type !== 'folder') {
+      res.status(400).send({ error: 'Parent is not a folder' });
       return;
     }
   }
-  if (type === "folder") {
+  if (type === 'folder') {
     const addDoc = await files.insertOne({
       name,
       type,
@@ -55,15 +56,15 @@ const postUpload = async (req, res) => {
     });
     res.status(201).json(addDoc.ops[0]);
   } else {
-    const storagePath = process.env.FOLDER_PATH || "/tmp/files_manager/";
+    const storagePath = process.env.FOLDER_PATH || '/tmp/files_manager/';
     if (!existsSync(storagePath)) {
       mkdirSync(storagePath, { recursive: true });
     }
     const fileId = uuidv4();
-    console.log("======file==", fileId, Buffer.from(data, "base64").toString());
+    // console.log("======file==", fileId, Buffer.from(data, "base64").toString());
     const newFile = await writeFile(
       storagePath + fileId,
-      Buffer.from(data, "base64").toString()
+      Buffer.from(data, 'base64').toString(),
     );
 
     const addDoc = await files.insertOne({
@@ -74,7 +75,16 @@ const postUpload = async (req, res) => {
       userId: userExists._id,
       localPath: storagePath + fileId,
     });
-    res.status(201).send(addDoc.ops[0]);
+    const fileInfo = addDoc.ops[0];
+    // console.log(fileInfo)
+    res.status(201).send({
+      id: fileInfo._id,
+      userId: fileInfo.userId,
+      name: fileInfo.name,
+      type: fileInfo.type,
+      isPublic: fileInfo.isPublic,
+      parentId: fileInfo.parentId,
+    });
   }
 };
 

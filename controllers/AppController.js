@@ -2,7 +2,7 @@ import redisClient from "../utils/redis";
 import dbClient from "../utils/db";
 
 const getStatus = (req, res) => {
-  const redistatus = redisClient.isAlive();
+  const redisStatus = redisClient.isAlive();
   const mongoStatus = dbClient.isAlive();
   res.status(200).json({
     redis: redisStatus,
